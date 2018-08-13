@@ -4,9 +4,13 @@ namespace Ryujinx.Graphics.Gal
 {
     public interface IGalFrameBuffer
     {
-        void Create(long Key, int Width, int Height);
+        void BindColor(long Key, int Attachment);
 
-        void Bind(long Key);
+        void UnbindColor(int Attachment);
+
+        void BindZeta(long Key);
+
+        void UnbindZeta();
 
         void BindTexture(long Key, int Index);
 
@@ -14,7 +18,7 @@ namespace Ryujinx.Graphics.Gal
 
         void Set(byte[] Data, int Width, int Height);
 
-        void SetTransform(float SX, float SY, float Rotate, float TX, float TY);
+        void SetTransform(bool FlipX, bool FlipY, int Top, int Left, int Right, int Bottom);
 
         void SetWindowSize(int Width, int Height);
 
@@ -40,7 +44,6 @@ namespace Ryujinx.Graphics.Gal
             long             Key,
             int              Width,
             int              Height,
-            GalTextureFormat Format,
             byte[]           Buffer);
     }
 }

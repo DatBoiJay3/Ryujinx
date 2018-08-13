@@ -12,17 +12,23 @@ namespace Ryujinx.Graphics.Gal.OpenGL
 
         protected BufferTarget Target { get; private set; }
 
-        private bool Mapped = false;
-
-        public OGLStreamBuffer(BufferTarget Target, long MaxSize)
+        public OGLStreamBuffer(BufferTarget Target, long Size)
         {
             this.Target = Target;
-            this.Size   = MaxSize;
+            this.Size   = Size;
+
+            Handle = GL.GenBuffer();
+
+            GL.BindBuffer(Target, Handle);
+
+            GL.BufferData(Target, (IntPtr)Size, IntPtr.Zero, BufferUsageHint.StreamDraw);
         }
 
-        public static OGLStreamBuffer Create(BufferTarget Target, long MaxSize)
+        public void SetData(long Size, IntPtr HostAddress)
         {
-            return new SubDataBuffer(Target, MaxSize);
+            GL.BindBuffer(Target, Handle);
+
+            GL.BufferSubData(Target, IntPtr.Zero, (IntPtr)Size, HostAddress);
         }
 
         public abstract void SetData(long Size, IntPtr HostAddress);
