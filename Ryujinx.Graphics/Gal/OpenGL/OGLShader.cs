@@ -17,6 +17,8 @@ namespace Ryujinx.Graphics.Gal.OpenGL
 
         public int CurrentProgramHandle { get; private set; }
 
+        private OGLCachedResource<OGLStreamBuffer> BufferCache;
+
         private OGLConstBuffer Buffer;
 
         private int ExtraUboHandle;
@@ -25,6 +27,8 @@ namespace Ryujinx.Graphics.Gal.OpenGL
         {
             this.Buffer = Buffer;
 
+            BufferCache = new OGLCachedResource<OGLStreamBuffer>((OGLStreamBuffer Buffer) => Buffer.Dispose());
+            
             Stages = new ConcurrentDictionary<long, OGLShaderStage>();
 
             Programs = new Dictionary<OGLShaderProgram, int>();
@@ -84,6 +88,33 @@ namespace Ryujinx.Graphics.Gal.OpenGL
             }
 
             return Enumerable.Empty<ShaderDeclInfo>();
+        }
+
+        public void BindConstBuffers(GalBufferBindings BufferBindings)
+        {
+            int FreeBinding = 0;
+
+            void BindIfNotNull(ShaderStage Stage)
+            {
+                if (Stage != null)
+                {
+                    foreach (ShaderDeclInfo DeclInfo in Stage.UniformUsage)
+                    {
+                        if (BufferCache.TryGetValue(BufferBindings.Get(Stage.Type, DeclInfo.Cbuf), out OGLStreamBuffer Buffer))
+                        {
+                            GL.BindBufferBase(BufferRangeTarget.UniformBuffer, FreeBinding, Buffer.Handle);
+                        }
+
+                        FreeBinding++;
+                    }
+                }
+            }
+
+            BindIfNotNull(Current.Vertex);
+            BindIfNotNull(Current.TessControl);
+            BindIfNotNull(Current.TessEvaluation);
+            BindIfNotNull(Current.Geometry);
+            BindIfNotNull(Current.Fragment);
         }
 
         public void EnsureTextureBinding(string UniformName, int Value)
@@ -187,6 +218,33 @@ namespace Ryujinx.Graphics.Gal.OpenGL
             CurrentProgramHandle = Handle;
         }
 
+        public void CreateBuffer(long Key, long DataSize)
+        {
+            OGLStreamBuffer Buffer = OGLStreamBuffer.Create(BufferTarget.UniformBuffer, DataSize);
+
+            BufferCache.AddOrUpdate(Key, Buffer, DataSize);
+        }
+
+        public bool BufferCached(long Key, long DataSize)
+        {
+            if (BufferCache.TryGetSize(Key, out long Size))
+            {
+                return Size == DataSize;
+            }
+
+            return false;
+        }
+
+        public void SetData(long Key, long DataSize, IntPtr HostAddress)
+        {
+            if (BufferCache.TryGetValue(Key, out OGLStreamBuffer Buffer))
+            {
+                Buffer.SetData(DataSize, HostAddress);
+            }
+        }
+
+        private void AttachIfNotNull(int ProgramHandle, ShaderStage Stage)
+
         private void EnsureExtraBlock()
         {
             if (ExtraUboHandle == 0)
@@ -198,16 +256,6 @@ namespace Ryujinx.Graphics.Gal.OpenGL
                 GL.BufferData(BufferTarget.UniformBuffer, 4 * sizeof(float), IntPtr.Zero, BufferUsageHint.StreamDraw);
 
                 GL.BindBufferBase(BufferRangeTarget.UniformBuffer, 0, ExtraUboHandle);
-            }
-        }
-
-        private void AttachIfNotNull(int ProgramHandle, OGLShaderStage Stage)
-        {
-            if (Stage != null)
-            {
-                Stage.Compile();
-
-                GL.AttachShader(ProgramHandle, Stage.Handle);
             }
         }
 

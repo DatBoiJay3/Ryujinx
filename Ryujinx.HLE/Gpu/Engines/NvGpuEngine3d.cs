@@ -27,6 +27,10 @@ namespace Ryujinx.HLE.Gpu.Engines
 
         private List<long>[] UploadedKeys;
 
+        private GalBufferBindings ConstBufferBindings;
+
+        private bool ConstBufferBindingsDirty;
+
         public NvGpuEngine3d(NvGpu Gpu)
         {
             this.Gpu = Gpu;
@@ -66,6 +70,8 @@ namespace Ryujinx.HLE.Gpu.Engines
             {
                 UploadedKeys[i] = new List<long>();
             }
+
+            ConstBufferBindings = new GalBufferBindings();
         }
 
         public void CallMethod(NvGpuVmm Vmm, NvGpuPBEntry PBEntry)
@@ -484,6 +490,7 @@ namespace Ryujinx.HLE.Gpu.Engines
 
                 if (Gpu.Renderer.Texture.TryGetCachedTexture(Key, Size, out GalImage Image))
                 {
+
                     if (NewImage.Equals(Image) && !QueryKeyUpload(Vmm, Key, Size, NvGpuBufferType.Texture))
                     {
                         Gpu.Renderer.Texture.Bind(Key, TexIndex);
@@ -507,23 +514,33 @@ namespace Ryujinx.HLE.Gpu.Engines
 
         private void UploadConstBuffers(NvGpuVmm Vmm, GalPipelineState State)
         {
-            for (int Stage = 0; Stage < State.ConstBufferKeys.Length; Stage++)
+            for (int Stage = 0; Stage < 5; Stage++)
             {
-                for (int Index = 0; Index < State.ConstBufferKeys[Stage].Length; Index++)
+                for (int Index = 0; Index < 18; Index++)
                 {
                     ConstBuffer Cb = ConstBuffers[Stage][Index];
 
-                    long Key = Cb.Position;
-
                     if (Cb.Enabled && QueryKeyUpload(Vmm, Key, Cb.Size, NvGpuBufferType.ConstBuffer))
                     {
-                        IntPtr Source = Vmm.GetHostAddress(Key, Cb.Size);
+                        long Key = Cb.Position;
 
-                        Gpu.Renderer.Buffer.SetData(Key, Cb.Size, Source);
+                        if (QueryKeyUpload(Vmm, Key, Cb.Size, NvGpuBufferType.ConstBuffer))
+                        {
+                            IntPtr Source = Vmm.GetHostAddress(Key, Cb.Size);
+
+                            Gpu.Renderer.Shader.SetData(Key, Cb.Size, Source);
+                        }
                     }
 
                     State.ConstBufferKeys[Stage][Index] = Key;
                 }
+            }
+
+            if (ConstBufferBindingsDirty)
+            {
+                ConstBufferBindingsDirty = false;
+
+                Gpu.Renderer.Shader.BindConstBuffers(ConstBufferBindings);
             }
         }
 
@@ -713,15 +730,18 @@ namespace Ryujinx.HLE.Gpu.Engines
 
             int Size = ReadRegister(NvGpuEngine3dReg.ConstBufferSize);
 
-            if (!Gpu.Renderer.Buffer.IsCached(Position, Size))
+            if (!Gpu.Renderer.Shader.BufferCached(Position, Size))
             {
-                Gpu.Renderer.Buffer.Create(Position, Size);
+                Gpu.Renderer.Shader.CreateBuffer(Position, Size);
             }
 
             ConstBuffer Cb = ConstBuffers[Stage][Index];
 
             if (Cb.Position != Position || Cb.Enabled != Enabled || Cb.Size != Size)
             {
+                ConstBufferBindings.Bind((GalShaderType)Stage, Index, Enabled ? Position : 0);
+
+                ConstBufferBindingsDirty = true;
                 ConstBuffers[Stage][Index].Position = Position;
                 ConstBuffers[Stage][Index].Enabled = Enabled;
                 ConstBuffers[Stage][Index].Size = Size;
