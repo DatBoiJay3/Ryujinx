@@ -14,20 +14,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Include="Gal\OpenGL\TCE.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="OpenTK.NetStandard" Version="1.0.4" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\ChocolArm64\ChocolArm64.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Include="Gal\OpenGL\FbVtxShader.glsl">
-        <LogicalName>GlFbVtxShader</LogicalName>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Gal\OpenGL\FbFragShader.glsl">
-        <LogicalName>GlFbFragShader</LogicalName>
-    </EmbeddedResource>
   </ItemGroup>
 
 </Project>

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace Ryujinx.Graphics.Gal
@@ -10,14 +11,20 @@ namespace Ryujinx.Graphics.Gal
 
         IEnumerable<ShaderDeclInfo> GetTextureUsage(long Key);
 
-        void SetConstBuffer(long Key, int Cbuf, byte[] Data);
+        void BindConstBuffers(GalBufferBindings BufferBindings);
 
         void EnsureTextureBinding(string UniformName, int Value);
 
-        void SetFlip(float X, float Y);
-
         void Bind(long Key);
 
+        void Unbind(GalShaderType Type);
+
         void BindProgram();
+
+        void CreateBuffer(long Key, long DataSize);
+
+        bool BufferCached(long Key, long DataSize);
+
+        void SetData(long Key, long DataSize, IntPtr HostAddress);
     }
 }

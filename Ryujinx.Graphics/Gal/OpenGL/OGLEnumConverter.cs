@@ -125,35 +125,42 @@ namespace Ryujinx.Graphics.Gal.OpenGL
             throw new ArgumentException(nameof(Type));
         }
 
-        public static (PixelFormat, PixelType) GetTextureFormat(GalTextureFormat Format)
+        public static (PixelInternalFormat, PixelFormat, PixelType) GetImageFormat(GalImageFormat Format)
         {
             switch (Format)
             {
-                case GalTextureFormat.R32G32B32A32: return (PixelFormat.Rgba,           PixelType.Float);
-                case GalTextureFormat.R16G16B16A16: return (PixelFormat.Rgba,           PixelType.HalfFloat);
-                case GalTextureFormat.A8B8G8R8:     return (PixelFormat.Rgba,           PixelType.UnsignedByte);
-                case GalTextureFormat.R32:          return (PixelFormat.Red,            PixelType.Float);
-                case GalTextureFormat.A1B5G5R5:     return (PixelFormat.Rgba,           PixelType.UnsignedShort5551);
-                case GalTextureFormat.B5G6R5:       return (PixelFormat.Rgb,            PixelType.UnsignedShort565);
-                case GalTextureFormat.G8R8:         return (PixelFormat.Rg,             PixelType.UnsignedByte);
-                case GalTextureFormat.R16:          return (PixelFormat.Red,            PixelType.HalfFloat);
-                case GalTextureFormat.R8:           return (PixelFormat.Red,            PixelType.UnsignedByte);
-                case GalTextureFormat.ZF32:         return (PixelFormat.DepthComponent, PixelType.Float);
+                case GalImageFormat.R32G32B32A32: return (PixelInternalFormat.Rgba32f,           PixelFormat.Rgba,           PixelType.Float);
+                case GalImageFormat.R16G16B16A16: return (PixelInternalFormat.Rgba16f,           PixelFormat.Rgba,           PixelType.HalfFloat);
+                case GalImageFormat.A8B8G8R8:     return (PixelInternalFormat.Rgba8,             PixelFormat.Rgba,           PixelType.UnsignedByte);
+                case GalImageFormat.A2B10G10R10:  return (PixelInternalFormat.Rgb10A2,           PixelFormat.Rgba,           PixelType.UnsignedInt2101010Reversed);
+                case GalImageFormat.R32:          return (PixelInternalFormat.R32f,              PixelFormat.Red,            PixelType.Float);
+                case GalImageFormat.A1B5G5R5:     return (PixelInternalFormat.Rgb5A1,            PixelFormat.Rgba,           PixelType.UnsignedShort5551);
+                case GalImageFormat.B5G6R5:       return (PixelInternalFormat.Rgba,              PixelFormat.Rgb,            PixelType.UnsignedShort565); //Stubbed.
+                case GalImageFormat.G16R16:       return (PixelInternalFormat.Rg16f,             PixelFormat.Rg,             PixelType.HalfFloat);
+                case GalImageFormat.G8R8:         return (PixelInternalFormat.Rg8,               PixelFormat.Rg,             PixelType.UnsignedByte);
+                case GalImageFormat.R16:          return (PixelInternalFormat.R16,               PixelFormat.Red,            PixelType.HalfFloat);
+                case GalImageFormat.R8:           return (PixelInternalFormat.R8,                PixelFormat.Red,            PixelType.UnsignedByte);
+                case GalImageFormat.ZF32:         return (PixelInternalFormat.DepthComponent32f, PixelFormat.DepthComponent, PixelType.Float);
+                case GalImageFormat.Z16:          return (PixelInternalFormat.DepthComponent16,  PixelFormat.DepthComponent, PixelType.HalfFloat);
+                case GalImageFormat.BF10GF11RF11: return (PixelInternalFormat.R11fG11fB10f,      PixelFormat.Rgb,            PixelType.UnsignedInt10F11F11FRev);
+                case GalImageFormat.Z24S8:        return (PixelInternalFormat.Depth24Stencil8,   PixelFormat.DepthStencil,   PixelType.UnsignedInt248);
             }
 
             throw new NotImplementedException(Format.ToString());
         }
 
-        public static InternalFormat GetCompressedTextureFormat(GalTextureFormat Format)
+        public static InternalFormat GetCompressedImageFormat(GalImageFormat Format)
         {
             switch (Format)
             {
-                case GalTextureFormat.BC7U: return InternalFormat.CompressedRgbaBptcUnorm;
-                case GalTextureFormat.BC1:  return InternalFormat.CompressedRgbaS3tcDxt1Ext;
-                case GalTextureFormat.BC2:  return InternalFormat.CompressedRgbaS3tcDxt3Ext;
-                case GalTextureFormat.BC3:  return InternalFormat.CompressedRgbaS3tcDxt5Ext;
-                case GalTextureFormat.BC4:  return InternalFormat.CompressedRedRgtc1;
-                case GalTextureFormat.BC5:  return InternalFormat.CompressedRgRgtc2;
+                case GalImageFormat.BC6H_UF16: return InternalFormat.CompressedRgbBptcUnsignedFloat;
+                case GalImageFormat.BC6H_SF16: return InternalFormat.CompressedRgbBptcSignedFloat;
+                case GalImageFormat.BC7U:      return InternalFormat.CompressedRgbaBptcUnorm;
+                case GalImageFormat.BC1:       return InternalFormat.CompressedRgbaS3tcDxt1Ext;
+                case GalImageFormat.BC2:       return InternalFormat.CompressedRgbaS3tcDxt3Ext;
+                case GalImageFormat.BC3:       return InternalFormat.CompressedRgbaS3tcDxt5Ext;
+                case GalImageFormat.BC4:       return InternalFormat.CompressedRedRgtc1;
+                case GalImageFormat.BC5:       return InternalFormat.CompressedSignedRgRgtc2;
             }
 
             throw new NotImplementedException(Format.ToString());

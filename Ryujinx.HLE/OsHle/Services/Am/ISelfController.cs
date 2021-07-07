@@ -17,7 +17,9 @@ namespace Ryujinx.HLE.OsHle.Services.Am
         {
             m_Commands = new Dictionary<int, ServiceProcessRequest>()
             {
+                { 0,  Exit                                  },
                 { 1,  LockExit                              },
+                { 2,  UnlockExit                            },
                 { 9,  GetLibraryAppletLaunchableEvent       },
                 { 10, SetScreenShotPermission               },
                 { 11, SetOperationModeChangedNotification   },
@@ -25,14 +27,31 @@ namespace Ryujinx.HLE.OsHle.Services.Am
                 { 13, SetFocusHandlingMode                  },
                 { 14, SetRestartMessageEnabled              },
                 { 16, SetOutOfFocusSuspendingEnabled        },
+                { 19, SetScreenShotImageOrientation         },
                 { 50, SetHandlesRequestToDisplay            }
             };
 
             LaunchableEvent = new KEvent();
         }
 
+        public long Exit(ServiceCtx Context)
+        {
+            Context.Ns.Log.PrintStub(LogClass.ServiceAm, "Stubbed.");
+            
+            return 0;
+        }
+
         public long LockExit(ServiceCtx Context)
         {
+            Context.Ns.Log.PrintStub(LogClass.ServiceAm, "Stubbed.");
+            
+            return 0;
+        }
+
+        public long UnlockExit(ServiceCtx Context)
+        {
+            Context.Ns.Log.PrintStub(LogClass.ServiceAm, "Stubbed.");
+            
             return 0;
         }
 
@@ -100,6 +119,15 @@ namespace Ryujinx.HLE.OsHle.Services.Am
         {
             bool Enable = Context.RequestData.ReadByte() != 0 ? true : false;
 
+            Context.Ns.Log.PrintStub(LogClass.ServiceAm, "Stubbed.");
+
+            return 0;
+        }
+
+        public long SetScreenShotImageOrientation(ServiceCtx Context)
+        {
+            int Orientation = Context.RequestData.ReadInt32();
+            
             Context.Ns.Log.PrintStub(LogClass.ServiceAm, "Stubbed.");
 
             return 0;
